@@ -1,8 +1,4 @@
-﻿/*
- * Shadowsocks-Net https://github.com/shadowsocks/Shadowsocks-Net
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -21,6 +17,7 @@ namespace Shadowsocks.Infrastructure.Sockets
         public int SendTimeout { set; get; } = 5000;
 
         public int ReceiveTimeout { set; get; } = 5000;
+
         public ServerConfig()
         {
             MaxNumClient ??= Defaults.MaxNumClient;

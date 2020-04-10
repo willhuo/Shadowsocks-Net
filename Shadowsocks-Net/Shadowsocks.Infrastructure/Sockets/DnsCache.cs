@@ -1,8 +1,4 @@
-﻿/*
- * Shadowsocks-Net https://github.com/shadowsocks/Shadowsocks-Net
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Net;
@@ -25,47 +21,46 @@ namespace Shadowsocks.Infrastructure.Sockets
 
         public static readonly DnsCache Shared = null;
 
+
+        LruCache<IPAddress[]> _Cache { get; set; }
+        ILogger _Logger { set; get; }
+
+
+        readonly TimeSpan _expiretime = TimeSpan.FromMinutes(30);
+
         static DnsCache()
         {
             if (null == Shared) { Shared = new DnsCache(null); }
         }
-
-        public ILogger Logger { set; get; }
-
-
-        LruCache<IPAddress[]> _cache = null;
-
-        readonly TimeSpan _expiretime = TimeSpan.FromMinutes(30);
-
-        public DnsCache(ILogger logger = null)
+        public DnsCache(ILogger logger)
         {
-            _cache = new LruCache<IPAddress[]>(TimeSpan.FromMinutes(10));
-            Logger = logger;
+            this._Cache = new LruCache<IPAddress[]>(TimeSpan.FromMinutes(10));
+            this._Logger = logger;
         }
 
         public async Task<IPAddress[]> ResolveHost(string host)
         {
 
-            var cache = _cache.Get(host);
+            var cache = _Cache.Get(host);
             if (null != cache) { return await Task.FromResult(cache); }
             try
             {
-                Logger?.LogInformation($"DnsCache resolving [{host}]...");
+                _Logger?.LogInformation($"DnsCache resolving [{host}]...");
                 var entry = await Dns.GetHostEntryAsync(host);
                 if (null != entry.AddressList && entry.AddressList.Length > 0)
                 {
-                    Logger?.LogInformation($"DnsCache resolved [{host}] = [{entry.AddressList[0].ToString()}]");
-                    _cache.Set(host, entry.AddressList, _expiretime);
+                    _Logger?.LogInformation($"DnsCache resolved [{host}] = [{entry.AddressList[0].ToString()}]");
+                    _Cache.Set(host, entry.AddressList, _expiretime);
                     return entry.AddressList;
                 }
             }
             catch (SocketException se)
             {
-                Logger?.LogWarning($"DnsCache resolve hostname failed:[{host}]. {se.SocketErrorCode}, {se.Message}.");
+                _Logger?.LogWarning($"DnsCache resolve hostname failed:[{host}]. {se.SocketErrorCode}, {se.Message}.");
             }
             catch (Exception ex)
             {
-                Logger?.LogWarning($"DnsCache resolve hostname failed:[{host}]. {ex.Message}.");
+                _Logger?.LogWarning($"DnsCache resolve hostname failed:[{host}]. {ex.Message}.");
             }
 
             return null;

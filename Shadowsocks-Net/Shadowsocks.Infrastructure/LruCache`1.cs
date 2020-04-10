@@ -1,9 +1,4 @@
-﻿/*
- * Shadowsocks-Net https://github.com/shadowsocks/Shadowsocks-Net
- */
-
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.Caching.Memory;
@@ -24,8 +19,7 @@ namespace Shadowsocks.Infrastructure
     {
         IMemoryCache _cache = null;
 
-        public LruCache()
-            : this(TimeSpan.FromSeconds(30))
+        public LruCache(): this(TimeSpan.FromSeconds(30))
         {
 
         }
@@ -34,7 +28,7 @@ namespace Shadowsocks.Infrastructure
             var option = new MemoryCacheOptions();
             option.CompactionPercentage = .7D;
 
-            option.ExpirationScanFrequency = TimeSpan.FromSeconds(30);//<-
+            option.ExpirationScanFrequency = TimeSpan.FromSeconds(30);
             _cache = new MemoryCache(option);
 
         }

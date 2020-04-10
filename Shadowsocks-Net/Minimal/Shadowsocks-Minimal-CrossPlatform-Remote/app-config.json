@@ -11,5 +11,13 @@
         "Default": "Information"
       }
     }
+  },
+  "RemoteServerConfig": {
+    //"server_host": null,
+    "server_port": 8901,
+    "use_ipv6": false,
+    "timeout": 5,
+    "password": "1234qwer",
+    "method": "aes-128-gcm"
   }
 }

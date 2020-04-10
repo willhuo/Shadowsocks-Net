@@ -1,8 +1,4 @@
-﻿/*
- * Shadowsocks-Net https://github.com/shadowsocks/Shadowsocks-Net
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Net;
@@ -11,20 +7,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Argument.Check;
+using Shadowsocks.Infrastructure;
+using Shadowsocks.Infrastructure.Sockets;
+using Shadowsocks.Infrastructure.Pipe;
+using System.Runtime.CompilerServices;
 
 namespace Shadowsocks.Remote
 {
-    using Infrastructure;
-    using Infrastructure.Sockets;
-    using Infrastructure.Pipe;
-    using System.Runtime.CompilerServices;
-
     /// <summary>
     /// This one runs on server.
     /// </summary>
     public sealed class RemoteServer : IShadowsocksServer
     {
-        ILogger _logger = null;
+        ILogger _logger { get; set; }
         CancellationTokenSource _cancellationStop = null;
 
         RemoteServerConfig _remoteServerConfig = null;

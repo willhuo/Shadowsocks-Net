@@ -28,8 +28,9 @@ namespace Shadowsocks_Minimal_Crossplatform_Remote
     {
         private static RemoteServer _RemoteServer;
 
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
+            Console.TreatControlCAsInput = false;
             Console.CancelKeyPress += Console_CancelKeyPress;
             AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 
@@ -40,14 +41,17 @@ namespace Shadowsocks_Minimal_Crossplatform_Remote
 
 
             _RemoteServer.Start();
-            await Task.CompletedTask;
 
-            logger.LogInformation("press key to stop server");            
-            Console.ReadKey();
-            _RemoteServer.Stop();
-
-            logger.LogInformation("press key to exit");
-            Console.ReadKey();
+            while(true)
+            {
+                var line = Console.ReadLine();
+                if (line == "exit")
+                {
+                    _RemoteServer.Stop();
+                    break;
+                }
+                logger.LogWarning("pls input exit to kill program");
+            }
         }
 
         private static Microsoft.Extensions.Logging.ILogger SetLog()

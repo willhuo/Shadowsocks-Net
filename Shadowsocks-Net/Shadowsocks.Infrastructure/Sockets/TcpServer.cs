@@ -20,9 +20,9 @@ namespace Shadowsocks.Infrastructure.Sockets
         TcpListener _listener = null;
 
 
-        public TcpServer(ServerConfig serverConfig, ILogger logger = null)
+        public TcpServer(ServerConfig serverConfig, ILogger logger)
         {
-            this._config = Throw.IfNull(() => serverConfig);
+            this._config = serverConfig;
             this._logger = logger;
         }
 
@@ -41,7 +41,7 @@ namespace Shadowsocks.Infrastructure.Sockets
             try
             {
                 InitializeListener();
-                _logger?.LogInformation("TcpServer starting...");
+                _logger.LogInformation("TcpServer starting...");
                 _listener.Start(10);
                 IsRunning = true;
                 _logger?.LogInformation($"TcpServer is listening on [{EndPoint.ToString()}]...");
@@ -142,7 +142,6 @@ namespace Shadowsocks.Infrastructure.Sockets
                 _listener = new TcpListener(this.EndPoint);
                 _listener.ExclusiveAddressUse = false;
             }
-
         }
 
 

@@ -19,30 +19,30 @@ namespace Shadowsocks.Remote
     /// </summary>
     public sealed class RemoteServer : IShadowsocksServer
     {
-        RemoteServerConfig _RemoteServerConfig { get; set; }
-        ILogger _Logger { get; set; }
+        RemoteServerConfig _remoteServerConfig { get; set; }
+        ILogger _logger { get; set; }
 
-        TcpServer _TcpServer { get; set; }
-        UdpServer _UdpServer { get; set; }
-        DnsCache _DnsCache { get; set; }
-        ISocks5Handler _Socks5Handler { get; set; }
-        CancellationTokenSource _CancellationStop { get; set; }
+        TcpServer _tcpServer { get; set; }
+        UdpServer _udpServer { get; set; }
+        DnsCache _dnsCache { get; set; }
+        ISocks5Handler _socks5Handler { get; set; }
+        CancellationTokenSource _cancellationStop { get; set; }
 
 
-        public RemoteServer(RemoteServerConfig remoteServerConfig, ILogger logger = null)
+        public RemoteServer(RemoteServerConfig remoteServerConfig, ILogger logger)
         {
-            this._RemoteServerConfig = remoteServerConfig;
-            this._Logger = logger;
+            this._remoteServerConfig = remoteServerConfig;
+            this._logger = logger;
 
             var serverConfig = new ServerConfig()
             {
-                BindPoint = _RemoteServerConfig.GetIPEndPoint(),
+                BindPoint = _remoteServerConfig.GetIPEndPoint(),
                 MaxNumClient = Defaults.MaxNumClient
             };
 
-            _TcpServer = new TcpServer(serverConfig, _Logger);
-            _UdpServer = new UdpServer(serverConfig, _Logger);
-            _DnsCache = new DnsCache(_Logger);
+            _tcpServer = new TcpServer(serverConfig, _logger);
+            _udpServer = new UdpServer(serverConfig, _logger);
+            _dnsCache = new DnsCache(_logger);
         }
 
 
@@ -52,52 +52,52 @@ namespace Shadowsocks.Remote
         [MethodImpl(MethodImplOptions.Synchronized)]
         public void Start()
         {
-            _CancellationStop = new CancellationTokenSource();
-            _Socks5Handler = new StandardRemoteSocks5Handler(_RemoteServerConfig, _DnsCache, _Logger);
+            _cancellationStop = new CancellationTokenSource();
+            _socks5Handler = new StandardRemoteSocks5Handler(_remoteServerConfig, _dnsCache, _logger);
 
-            _TcpServer.Listen();
-            _UdpServer.Listen();
+            _tcpServer.Listen();
+            _udpServer.Listen();
 
-            if (_TcpServer.IsRunning)
-                Task.Run(() => ProcessTcp(_CancellationStop.Token));
+            if (_tcpServer.IsRunning)
+                Task.Run(() => ProcessTcp(_cancellationStop.Token));
 
-            if (_TcpServer.IsRunning && _UdpServer.IsRunning)
-                Task.Run(() => ProcessUdp(_CancellationStop.Token));
+            if (_tcpServer.IsRunning && _udpServer.IsRunning)
+                Task.Run(() => ProcessUdp(_cancellationStop.Token));
         }
 
         public void Stop()
         {
-            if (null != _CancellationStop)
+            if (null != _cancellationStop)
             {
-                _CancellationStop.Cancel();
-                _CancellationStop = null;
+                _cancellationStop.Cancel();
+                _cancellationStop = null;
             }
 
-            _TcpServer.StopListen();
-            _UdpServer.StopListen();
+            _tcpServer.StopListen();
+            _udpServer.StopListen();
 
-            if (null != _Socks5Handler)
+            if (null != _socks5Handler)
             {
-                _Socks5Handler.Dispose();
-                _Socks5Handler = null;
+                _socks5Handler.Dispose();
+                _socks5Handler = null;
             }
         }
         #endregion
 
         async ValueTask ProcessTcp(CancellationToken cancellationToken)
         {
-            while (!cancellationToken.IsCancellationRequested && _TcpServer.IsRunning)
+            while (!cancellationToken.IsCancellationRequested && _tcpServer.IsRunning)
             {
-                var client = await _TcpServer.Accept();
+                var client = await _tcpServer.Accept();
                 if (null != client)
                 {
                     if (cancellationToken.IsCancellationRequested) { client.Close(); return; }
-                    if (null != _Socks5Handler)                    
-                        await _Socks5Handler.HandleTcp(client, this._CancellationStop.Token);                    
+                    if (null != _socks5Handler)                    
+                        await _socks5Handler.HandleTcp(client, this._cancellationStop.Token);                    
                 }
                 else
                 {
-                    _Logger.LogWarning("tcpclient is null");
+                    _logger.LogWarning("tcpclient is null");
                     break;
                 }
             }
@@ -105,18 +105,18 @@ namespace Shadowsocks.Remote
 
         async ValueTask ProcessUdp(CancellationToken cancellationToken)
         {
-            while (!cancellationToken.IsCancellationRequested && _TcpServer.IsRunning && _UdpServer.IsRunning)
+            while (!cancellationToken.IsCancellationRequested && _tcpServer.IsRunning && _udpServer.IsRunning)
             {
-                var client = await _UdpServer.Accept();
+                var client = await _udpServer.Accept();
                 if (null != client)
                 {
                     if (cancellationToken.IsCancellationRequested) { client.Close(); return; }
-                    if (null != _Socks5Handler)
-                        await _Socks5Handler.HandleUdp(client, this._CancellationStop.Token);
+                    if (null != _socks5Handler)
+                        await _socks5Handler.HandleUdp(client, this._cancellationStop.Token);
                 }
                 else 
                 {
-                    _Logger.LogWarning("udp client is null");
+                    _logger.LogWarning("udp client is null");
                 }
             }
         }

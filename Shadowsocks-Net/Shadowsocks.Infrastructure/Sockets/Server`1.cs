@@ -1,8 +1,4 @@
-﻿/*
- * Shadowsocks-Net https://github.com/shadowsocks/Shadowsocks-Net
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
@@ -10,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace Shadowsocks.Infrastructure.Sockets
 {
-    public abstract class Server<TClient> : IServer<TClient>
-        where TClient : IClient
+    public abstract class Server<TClient> : IServer<TClient> where TClient : IClient
     {
         public virtual bool IsRunning { get; protected set; }
 
